@@ -1,4 +1,3 @@
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -30,7 +29,7 @@ public class WF_UserRegistration extends JFrame implements Customizable {
         GridBagConstraints gbc = new GridBagConstraints();
 
         // Form panel
-        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.anchor = GridBagConstraints.NORTH;
         gbc.fill = GridBagConstraints.NONE;
         gbc.gridx = 0;
         gbc.gridy = 0;
