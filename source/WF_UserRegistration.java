@@ -2,7 +2,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 public class WF_UserRegistration extends JFrame implements Customizable {
 
