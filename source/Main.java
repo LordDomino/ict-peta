@@ -13,6 +13,7 @@ public class Main {
 
     public static void main(String[] args) {
         root = new WF_UserRegistration();
+
         try {
             root.tablePanel.loadFromDatabase();
         } catch (Exception e) {
@@ -21,6 +22,7 @@ public class Main {
                 "An unknown error occurred!",
                 "Error", JOptionPane.ERROR_MESSAGE);
         }
+        
         root.setVisible(true);
     }
 
