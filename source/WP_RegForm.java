@@ -6,12 +6,14 @@ import java.awt.Insets;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.Statement;
 
 import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -26,7 +28,7 @@ public class WP_RegForm extends JPanel implements Customizable {
     private JPanel buttonsPanel = new JPanel(new GridBagLayout());
 
     // GUI components
-    public JLabel formHeader = new JLabel("User Registration");
+    protected JLabel formHeader = new JLabel("User Registration");
 
     // Labels and fields 
     private JLabel firstNameLabel = new JLabel("First name");
@@ -44,6 +46,7 @@ public class WP_RegForm extends JPanel implements Customizable {
     private JTextField contactNoField = new JTextField(8);
 
     // IMPORTANT! Only fields inside the array are recognized by some functions here
+    /**The JTextFields recognized by this program */
     protected JTextField[] fields = {
         firstNameField,
         lastNameField,
@@ -53,10 +56,19 @@ public class WP_RegForm extends JPanel implements Customizable {
         contactNoField
     };
 
+    protected String[] fieldNames = {
+        "first_name",
+        "last_name",
+        "username",
+        "email",
+        "password",
+        "contact_no"
+    };
+
     // Buttons
     private JButton registerButton = new JButton("Register");
     private JButton editButton = new JButton("Edit");
-    private JButton cancelButton = new JButton("Cancel");
+    private JButton clearButton = new JButton("Clear");
 
     public WP_RegForm() {
         super(new GridBagLayout());
@@ -68,7 +80,7 @@ public class WP_RegForm extends JPanel implements Customizable {
     public void prepareComponents() {
         registerButton.setEnabled(false);
         editButton.setEnabled(false);
-        cancelButton.setEnabled(false);
+        clearButton.setEnabled(false);
 
         // JTextFields that are required
         JTextField[]  requiredTextFields = {
@@ -84,35 +96,81 @@ public class WP_RegForm extends JPanel implements Customizable {
         setButtonTriggerOnAllFields(registerButton, requiredTextFields);
 
         // Set cancelButton enabled on each non-empty JTextField
-        setButtonTriggerOnAnyField(cancelButton, fields);
+        setButtonTriggerOnAnyField(clearButton, fields);
 
         // Button action listeners
         registerButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 ArrayList<String> fieldValues = new ArrayList<>();
 
-                // Retrieve each gathered string
+                // Retrieve each input string from the JTextFields
                 for (JTextField tf : fields) {
                     fieldValues.add(tf.getText());
                 }
 
                 // Check existence of data
                 try {
-                    Connection connection = DriverManager.getConnection(
-                        "jdbc:mysql://localhost:3306/" + Main.sqlDb, 
-                        "root",
-                        ""
+
+                    // It is necessary to establish SQL connection first
+                    // before requests can be sent
+                    Main.establishSQLConnection();
+
+                    // Query setup
+                    String query = "SELECT * FROM " + Main.sqlTbl + " WHERE email = \"" + fieldValues.get(3) + "\"";
+                    Statement statement = Main.connection.createStatement();
+
+                    // Get the result from the query
+                    ResultSet result = statement.executeQuery(query);
+
+                    if (result.getFetchSize() == 0) {
+                        // Query setup
+                        query = "INSERT INTO " + Main.sqlTbl + " (";
+
+                        for (String field : fieldNames) {
+                            query = query + " `" + field + "`,";
+                        }
+
+                        query = query.substring(0, query.length()-1) + " ) VALUES (";
+
+                        for (String val : fieldValues) {
+                            if (val.equals("")) {
+                                query = query + " NULL,";
+                            } else {
+                                query = query + " '" + val + "',";
+                            }
+                        }
+
+                        query = query.substring(0, query.length()-1) + " );";
+
+                        // Preview and execute query, if there are no errors
+                        System.out.println(query);
+                        Statement statement2 = Main.connection.createStatement();
+                        statement2.executeUpdate(query);
+                        
+                        // Add the new results to the table
+                        Main.root.tablePanel.updateTable(fieldValues.toArray());
+                        clearTextFields();
+                    }
+
+                    // IMPORTANT! -- necessary to read the first row
+                    //result.next();
+
+                    // Close connection
+                    Main.connection.close();
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(
+                        Main.root,
+                        "Invalid input/s found; cannot proceed with operation",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
                     );
+                }
+            }
+        });
 
-                    // WORK IN PROGRESS =======================================
-                    
-                    String query = "SELECT * FROM users_tbl";
-                    Statement statement = connection.createStatement();
-                    statement.executeQuery(query);
-
-                    // WORK IN PROGRESS =======================================
-
-                } catch (Exception e) {}
+        clearButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                clearTextFields(); // Clear all text fields
             }
         });
     }
@@ -245,7 +303,7 @@ public class WP_RegForm extends JPanel implements Customizable {
         // Cancel button
         gbc.gridx = 2;
         gbc.gridy = 0;
-        buttonsPanel.add(cancelButton, gbc);
+        buttonsPanel.add(clearButton, gbc);
     }
 
     public void finalizePrepare() {}
@@ -342,5 +400,11 @@ public class WP_RegForm extends JPanel implements Customizable {
             }
         }
         return false;
+    }
+
+    protected void clearTextFields() {
+        for (JTextField field : fields) {
+            field.setText("");
+        }
     }
 }

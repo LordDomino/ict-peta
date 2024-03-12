@@ -7,8 +7,8 @@ import javax.swing.JPanel;
 public class WF_UserRegistration extends JFrame implements Customizable {
 
     // Layout components
-    private JPanel formPanel = new WP_RegForm();
-    private JPanel tablePanel = new WP_TablePanel();
+    protected WP_RegForm formPanel = new WP_RegForm();
+    protected WP_TablePanel tablePanel = new WP_TablePanel();
 
     // GUI components
     

@@ -1,6 +1,12 @@
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -20,12 +26,12 @@ public class WP_TablePanel extends JPanel implements Customizable {
         "Password",
         "Contact No."
     };
-    public DefaultTableModel tableMd = new DefaultTableModel(columnNames, 1) {
+    protected DefaultTableModel tableMd = new DefaultTableModel(columnNames, 0) {
         public boolean isCellEditable(int row, int column) {
             return false;
         }
     };
-    public JTable table = new JTable(tableMd);
+    protected JTable table = new JTable(tableMd);
     private JScrollPane tableArea = new JScrollPane(table);
 
     public WP_TablePanel() {
@@ -61,5 +67,45 @@ public class WP_TablePanel extends JPanel implements Customizable {
         prepareComponents();
         addComponents();
         finalizePrepare();
+    }
+
+    protected void updateTable(Object[] values) throws Exception {
+        loadFromDatabase();
+    }
+
+    protected void loadFromDatabase() throws Exception {
+        // Clear the rows
+        tableMd.setRowCount(0);
+
+        try {
+            Main.establishSQLConnection();
+            
+            String query = "SELECT * FROM " + Main.sqlTbl;
+            Statement statement = Main.connection.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE,
+                ResultSet.CONCUR_READ_ONLY
+            );
+            ResultSet result = statement.executeQuery(query);
+            
+            result.last();
+            int n = result.getRow();
+            result.beforeFirst();
+
+            int i = 0;
+            while (i < n) {
+                result.next();
+
+                ArrayList<Object> dataFromSQL = new ArrayList<>();
+
+                for (String field : Main.root.formPanel.fieldNames) {
+                    dataFromSQL.add(result.getObject(field));
+                }
+
+                tableMd.addRow(dataFromSQL.toArray());
+                i++;
+            }
+        } catch (Exception e) {
+            throw new Exception();
+        }
     }
 }
