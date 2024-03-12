@@ -20,7 +20,11 @@ public class WP_TablePanel extends JPanel implements Customizable {
         "Password",
         "Contact No."
     };
-    public DefaultTableModel tableMd = new DefaultTableModel(columnNames, 1);
+    public DefaultTableModel tableMd = new DefaultTableModel(columnNames, 1) {
+        public boolean isCellEditable(int row, int column) {
+            return false;
+        }
+    };
     public JTable table = new JTable(tableMd);
     private JScrollPane tableArea = new JScrollPane(table);
 

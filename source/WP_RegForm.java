@@ -1,12 +1,22 @@
-import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Insets;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+
+import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.DocumentEvent;
 
 public class WP_RegForm extends JPanel implements Customizable {
 
@@ -33,6 +43,16 @@ public class WP_RegForm extends JPanel implements Customizable {
     private JPasswordField passwordField = new JPasswordField(8);
     private JTextField contactNoField = new JTextField(8);
 
+    // IMPORTANT! Only fields inside the array are recognized by some functions here
+    protected JTextField[] fields = {
+        firstNameField,
+        lastNameField,
+        userNameField,
+        emailField,
+        passwordField,
+        contactNoField
+    };
+
     // Buttons
     private JButton registerButton = new JButton("Register");
     private JButton editButton = new JButton("Edit");
@@ -45,7 +65,57 @@ public class WP_RegForm extends JPanel implements Customizable {
 
     public void prepare() {}
 
-    public void prepareComponents() {}
+    public void prepareComponents() {
+        registerButton.setEnabled(false);
+        editButton.setEnabled(false);
+        cancelButton.setEnabled(false);
+
+        // JTextFields that are required
+        JTextField[]  requiredTextFields = {
+            firstNameField,
+            lastNameField,
+            userNameField,
+            emailField,
+            passwordField
+        };
+
+        // Sets document listeners to require several JTextFields to be
+        // non-empty for registerButton to enable
+        setButtonTriggerOnAllFields(registerButton, requiredTextFields);
+
+        // Set cancelButton enabled on each non-empty JTextField
+        setButtonTriggerOnAnyField(cancelButton, fields);
+
+        // Button action listeners
+        registerButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                ArrayList<String> fieldValues = new ArrayList<>();
+
+                // Retrieve each gathered string
+                for (JTextField tf : fields) {
+                    fieldValues.add(tf.getText());
+                }
+
+                // Check existence of data
+                try {
+                    Connection connection = DriverManager.getConnection(
+                        "jdbc:mysql://localhost:3306/" + Main.sqlDb, 
+                        "root",
+                        ""
+                    );
+
+                    // WORK IN PROGRESS =======================================
+                    
+                    String query = "SELECT * FROM users_tbl";
+                    Statement statement = connection.createStatement();
+                    statement.executeQuery(query);
+
+                    // WORK IN PROGRESS =======================================
+
+                } catch (Exception e) {}
+            }
+        });
+    }
 
     public void addComponents() {
         GridBagConstraints gbc = new GridBagConstraints();
@@ -161,8 +231,7 @@ public class WP_RegForm extends JPanel implements Customizable {
         fieldsPanel.add(contactNoField, gbc);
 
 
-        // BUTTONS
-        
+        // BUTTONS        
         // Register button
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -186,5 +255,92 @@ public class WP_RegForm extends JPanel implements Customizable {
         prepareComponents();
         addComponents();
         finalizePrepare();
+    }
+
+    public void setButtonTriggerOnAnyField(JButton button, JTextField[] tfs) {
+        for (JTextField tf : tfs) {
+            tf.getDocument().addDocumentListener(new DocumentListener() {
+                public void changedUpdate(DocumentEvent event) {
+                    changed();
+                }
+
+                public void removeUpdate(DocumentEvent event) {
+                    changed();
+                }
+
+                public void insertUpdate(DocumentEvent event) {
+                    changed();
+                }
+
+                public void changed() {
+                    if (checkAllTextFields(tfs)) {
+                        button.setEnabled(true);
+                    } else {
+                        button.setEnabled(false);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Checks if all JTextField in the given array are not empty.
+     * Returns {@code}true{@code} when all JTextFields are not empty,
+     * otherwise returns {@code}false{@code}.
+     * @param tfs the array of JTextFields to check
+     * @return {@code}true{@code} if all JTextFields are not empty,
+     * {@code}false{@code} if any JTextField is empty
+     */
+    public void setButtonTriggerOnAllFields(JButton button, JTextField[] tfs) {
+        for (JTextField tf : tfs) {
+            tf.getDocument().addDocumentListener(new DocumentListener() {
+                public void changedUpdate(DocumentEvent event) {
+                    changed();
+                }
+
+                public void removeUpdate(DocumentEvent event) {
+                    changed();
+                }
+
+                public void insertUpdate(DocumentEvent event) {
+                    changed();
+                }
+
+                public void changed() {
+                    if (checkEmptyTextFields(tfs)) {
+                        button.setEnabled(false);
+                    } else {
+                        button.setEnabled(true);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Checks if any JTextField in the given array is empty.
+     * Returns {@code}true{@code} when one or more JTextField is
+     * empty, otherwise returns {@code}false{@code}.
+     * @param tfs the array of JTextFields to check
+     * @return {@code}true{@code} if one or more JTextField is
+     * empty, {@code}false{@code} if all JTextFields are not
+     * empty
+     */
+    private boolean checkEmptyTextFields(JTextField[] tfs) {
+        for (JTextField textField : tfs) {
+            if (textField.getText().equals("")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean checkAllTextFields(JTextField[] tfs) {
+        for (JTextField textField : tfs) {
+            if (!textField.getText().equals("")) {
+                return true;
+            }
+        }
+        return false;
     }
 }
