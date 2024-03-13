@@ -65,7 +65,6 @@ public class WP_RegForm extends JPanel implements Customizable {
 
     // Buttons
     private JButton registerButton = new JButton("Register");
-    private JButton editButton = new JButton("Edit");
     private JButton clearButton = new JButton("Clear");
 
     public WP_RegForm() {
@@ -77,7 +76,6 @@ public class WP_RegForm extends JPanel implements Customizable {
 
     public void prepareComponents() {
         registerButton.setEnabled(false);
-        editButton.setEnabled(false);
         clearButton.setEnabled(false);
 
         // JTextFields that are required
@@ -292,11 +290,6 @@ public class WP_RegForm extends JPanel implements Customizable {
         gbc.gridx = 0;
         gbc.gridy = 0;
         buttonsPanel.add(registerButton, gbc);
-
-        // Edit button
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        buttonsPanel.add(editButton, gbc);
 
         // Cancel button
         gbc.gridx = 2;

@@ -1,12 +1,16 @@
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.MouseEvent;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.event.MouseInputAdapter;
 import javax.swing.table.DefaultTableModel;
 
 public class WP_TablePanel extends JPanel implements Customizable {
@@ -31,6 +35,9 @@ public class WP_TablePanel extends JPanel implements Customizable {
     protected JTable table = new JTable(tableMd);
     private JScrollPane tableArea = new JScrollPane(table);
 
+    // Ribbon components
+    protected JButton editButton = new JButton("Edit");
+
     public WP_TablePanel() {
         super(new GridBagLayout());
         compile();
@@ -38,16 +45,50 @@ public class WP_TablePanel extends JPanel implements Customizable {
 
     public void prepare() {}
 
-    public void prepareComponents() {}
+    public void prepareComponents() {
+        table.addMouseListener(new MouseInputAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    // enable table editing
+                    tableMd = new DefaultTableModel(columnNames, 0) {
+                        public boolean isCellEditable(int row, int column) {
+                            return false;  // SET TO TRUE FOR FUNCTIONALITY
+                        }
+                    };
+
+                    if (tableMd.isCellEditable(0, 0)) {
+                        int row = table.getSelectedRow();
+                        int column = table.getSelectedColumn();
+
+                        table.setModel(tableMd);
+
+                        try {
+                            loadFromDatabase();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+
+                        System.out.println("Row " + row);
+                        System.out.println("Column " + column);
+                        
+                        table.changeSelection(row, column, false, false);
+                        table.editCellAt(row, column);
+                        table.transferFocus();
+                    }
+                }
+            }
+        });
+    }
 
     public void addComponents() {
         GridBagConstraints gbc = new GridBagConstraints();
 
         // Ribbon panel
-        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridx = 0;
         gbc.gridy = 0;
+        gbc.ipadx = 20;
         gbc.weightx = 1;
         add(ribbon, gbc);
 
@@ -55,6 +96,14 @@ public class WP_TablePanel extends JPanel implements Customizable {
         gbc.weighty = 1;
         gbc.gridy = 1;
         add(tableArea, gbc);
+
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(5, 0, 5, 0);
+        gbc.weightx = 1;
+        ribbon.add(editButton, gbc);
     }
 
     public void finalizePrepare() {}
