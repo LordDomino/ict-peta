@@ -154,9 +154,10 @@ public class WP_RegForm extends JPanel implements Customizable {
                     // Close connection
                     Main.connection.close();
                 } catch (Exception e) {
+                    e.printStackTrace();
                     JOptionPane.showMessageDialog(
                         Main.root,
-                        "Invalid input/s found; cannot proceed with operation",
+                        e.getMessage(),
                         "Error",
                         JOptionPane.ERROR_MESSAGE
                     );
@@ -306,6 +307,12 @@ public class WP_RegForm extends JPanel implements Customizable {
         finalizePrepare();
     }
 
+    /**
+     * Enables the given JButton if any of the given text fields becomes
+     * non-empty.
+     * @param button the button to enable
+     * @param tfs the text fields to check
+     */
     public void setButtonTriggerOnAnyField(JButton button, JTextField[] tfs) {
         for (JTextField tf : tfs) {
             tf.getDocument().addDocumentListener(new DocumentListener() {
@@ -393,6 +400,9 @@ public class WP_RegForm extends JPanel implements Customizable {
         return false;
     }
 
+    /**
+     * Clears all text typed in the fields.
+     */
     protected void clearTextFields() {
         for (JTextField field : fields) {
             field.setText("");

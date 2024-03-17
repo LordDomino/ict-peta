@@ -16,16 +16,20 @@ public class Main {
 
         try {
             root.tablePanel.loadFromDatabase();
+            root.setVisible(true);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(
                 root,
-                "An unknown error occurred!",
+                "SQL database offline. Please retry.",
                 "Error", JOptionPane.ERROR_MESSAGE);
         }
         
-        root.setVisible(true);
     }
 
+    /**
+     * Registers the JAR library and establishes a port connection to access
+     * MySQL.
+     */
     public static void establishSQLConnection() {
         try {
             // Here we register the referenced external library, which
