@@ -39,31 +39,29 @@ public class Row {
         this.row = new HashMap<Object, Class>();
     }
     
-    public <T> void add(T data) {
+    private <T> void add(T data) {
         row.put(data, data.getClass());
     }
 
-    public void add(Object data, String sqlType) {
+    private void add(Object data, String sqlType) {
         Class castType = Row.TYPE.get(sqlType);
         add(castType.cast(data));
     }
 
-    public static void formTable(ResultSet rs, ArrayList<Row> table) {
+    public static void generateTable(ResultSet rs, ArrayList<Row> table) {
         if (rs == null) {
             return;
         }
 
         try {
             ResultSetMetaData rsmd = rs.getMetaData();
-            int numOfCols = rsmd.getColumnCount();
+            int columnCount = rsmd.getColumnCount();
 
             while (rs.next()) {
                 Row tempRow = new Row();
-
-                for (int i = 1; i <= numOfCols; i++) {
+                for (int i = 1; i <= columnCount; i++) {
                     tempRow.add(rs.getObject(i), rsmd.getColumnTypeName(i));
                 }
-
                 table.add(tempRow);
             }
         } catch (Exception e) {

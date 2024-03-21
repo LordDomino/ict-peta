@@ -1,10 +1,13 @@
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -37,6 +40,7 @@ public class WP_TablePanel extends JPanel implements Customizable {
 
     // Ribbon components
     protected JButton editButton = new JButton("Edit");
+    protected JButton deleteButton = new JButton("Delete");
 
     public WP_TablePanel() {
         super(new GridBagLayout());
@@ -46,6 +50,8 @@ public class WP_TablePanel extends JPanel implements Customizable {
     public void prepare() {}
 
     public void prepareComponents() {
+        // deleteButton.setEnabled(false);
+
         table.addMouseListener(new MouseInputAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
@@ -78,6 +84,29 @@ public class WP_TablePanel extends JPanel implements Customizable {
                 }
             }
         });
+        
+        deleteButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                // Convert columnNames into array list and get the index of the
+                // unique identifier column
+                ArrayList<String> headers = new ArrayList<>(Arrays.asList(columnNames));
+                int columnID = headers.indexOf("Email");
+
+                // table.getColumnName(...);
+                // Get indices of selected rows from the JTable
+                int[] selRows = table.getSelectionModel().getSelectedIndices();
+
+                // Loop through the indices per row and get the unique values
+                // i.e., the emails
+                ArrayList<String> uniqueIDEmails = new ArrayList<>();
+
+                for (int rowID : selRows) {
+                    String email = table.getValueAt(rowID, columnID).toString();
+                    uniqueIDEmails.add(email);
+                    System.out.println(uniqueIDEmails.toString());
+                }
+            }
+        });
     }
 
     public void addComponents() {
@@ -85,18 +114,21 @@ public class WP_TablePanel extends JPanel implements Customizable {
 
         // Ribbon panel
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.BOTH;
+        gbc.fill = GridBagConstraints.VERTICAL;
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.ipadx = 20;
         gbc.weightx = 1;
         add(ribbon, gbc);
-
+        
         // Table area
+        gbc.fill = GridBagConstraints.BOTH;
         gbc.weighty = 1;
         gbc.gridy = 1;
         add(tableArea, gbc);
 
+        // BUTTONS
+        // Edit button
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.NONE;
         gbc.gridx = 0;
@@ -104,6 +136,15 @@ public class WP_TablePanel extends JPanel implements Customizable {
         gbc.insets = new Insets(5, 0, 5, 0);
         gbc.weightx = 1;
         ribbon.add(editButton, gbc);
+
+        // Delete button
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(5, 0, 5, 0);
+        gbc.weightx = 1;
+        ribbon.add(deleteButton, gbc);
     }
 
     public void finalizePrepare() {}

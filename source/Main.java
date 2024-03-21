@@ -27,8 +27,8 @@ public class Main {
     }
 
     /**
-     * Registers the JAR library and establishes a port connection to access
-     * MySQL.
+     * Registers the class from the JAR library and establishes a port
+     * connection to access MySQL.
      */
     public static void establishSQLConnection() {
         try {
