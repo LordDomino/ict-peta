@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -20,7 +21,7 @@ public class WP_TablePanel extends JPanel implements Customizable {
 
     // Layout components
     private JPanel ribbon = new JPanel(new GridBagLayout());
-    
+
     // Table related components
     public String[] columnNames = {
         "First name",
@@ -76,7 +77,7 @@ public class WP_TablePanel extends JPanel implements Customizable {
 
                         System.out.println("Row " + row);
                         System.out.println("Column " + column);
-                        
+
                         table.changeSelection(row, column, false, false);
                         table.editCellAt(row, column);
                         table.transferFocus();
@@ -84,7 +85,7 @@ public class WP_TablePanel extends JPanel implements Customizable {
                 }
             }
         });
-        
+
         deleteButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 // Convert columnNames into array list and get the index of the
@@ -103,7 +104,41 @@ public class WP_TablePanel extends JPanel implements Customizable {
                 for (int rowID : selRows) {
                     String email = table.getValueAt(rowID, columnID).toString();
                     uniqueIDEmails.add(email);
-                    System.out.println(uniqueIDEmails.toString());
+                }
+
+                // Performing the delete (SQL-Java connection)
+                try {
+                    String query;
+                    Main.establishSQLConnection();
+
+                    if (uniqueIDEmails.size() == 1) {
+                        // If only 1 row is selected, use the equal operator for SQL query
+                        query = "DELETE FROM " + Main.sqlTbl + " WHERE email = \"" + uniqueIDEmails.get(0) + "\"";
+                    } else {
+                        // If more than one row is selected, use the IN keyword for SQL query
+                        query = "DELETE FROM " + Main.sqlTbl + " WHERE email IN ( ";
+
+                        // Get all uniqueIDEmails
+                        for (String email : uniqueIDEmails) {
+                            query = query + "\"" + email + "\", ";
+                        }
+
+                        query = query.substring(0, query.length()-2) + " );";
+                    }
+                    System.out.println(query);
+                    Statement statement = Main.connection.createStatement();
+                    statement.executeUpdate(query);
+                    
+                    Main.connection.close();
+                    loadFromDatabase();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(
+                        Main.root,
+                        e.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
                 }
             }
         });
@@ -120,7 +155,7 @@ public class WP_TablePanel extends JPanel implements Customizable {
         gbc.ipadx = 20;
         gbc.weightx = 1;
         add(ribbon, gbc);
-        
+
         // Table area
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weighty = 1;
@@ -166,14 +201,14 @@ public class WP_TablePanel extends JPanel implements Customizable {
 
         try {
             Main.establishSQLConnection();
-            
+
             String query = "SELECT * FROM " + Main.sqlTbl;
             Statement statement = Main.connection.createStatement(
                 ResultSet.TYPE_SCROLL_INSENSITIVE,
                 ResultSet.CONCUR_READ_ONLY
             );
             ResultSet result = statement.executeQuery(query);
-            
+
             result.last();
             int n = result.getRow();
             result.beforeFirst();
